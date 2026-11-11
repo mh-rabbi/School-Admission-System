@@ -6,7 +6,7 @@ This document records how AI was used to build the backend, where it went wrong,
 
 | Tool | Used for |
 |---|---|
-| **Claude Code** (VS Code extension), model **Claude Opus 5.5** | Pair programming on the backend: requirements analysis, design options, implementation, tests, Docker setup, documentation |
+| **Free VS code Co-pilot & Antigravity & Codex** (VS Code extension), model **Claude Sonnet, Gemini, ChatGPT** | Pair programming on the backend: requirements analysis, design options, implementation, tests, Docker setup, documentation |
 
 ## How the AI was used
 

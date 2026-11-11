@@ -1,23 +1,32 @@
-import { IdBar } from './components/IdBar'
-import { useTheme } from './state/ThemeProvider'
+import { useEffect, useRef } from 'react'
+import { Header } from './components/Header'
+import { useRoute } from './hooks/useRoute'
+import { Landing } from './pages/Landing'
+import { Portal } from './pages/Portal'
 
-/** Shell for steps 1–3: header + identity bar. Tabs, lists and actions arrive in the next steps. */
 export default function App() {
-  const { effective, toggle } = useTheme()
+  const { route } = useRoute()
+  const mainRef = useRef<HTMLElement>(null)
+  const firstRender = useRef(true)
+
+  // Move keyboard/screen-reader focus to the new page's content when the page changes (not on first load).
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false
+      return
+    }
+    mainRef.current?.focus()
+  }, [route.page])
+
   return (
-    <main className="wrap">
-      <header className="glass shell-header">
-        <h1 className="shell-title">School Admission</h1>
-        <button
-          type="button"
-          className="btn ghost"
-          onClick={toggle}
-          aria-label={`Switch to ${effective === 'dark' ? 'light' : 'dark'} mode`}
-        >
-          ◐
-        </button>
-      </header>
-      <IdBar />
-    </main>
+    <>
+      <a className="skip" href="#main" onClick={(e) => { e.preventDefault(); mainRef.current?.focus() }}>
+        Skip to content
+      </a>
+      <Header page={route.page} />
+      <main id="main" ref={mainRef} tabIndex={-1}>
+        {route.page === 'welcome' ? <Landing /> : <Portal tab={route.tab} />}
+      </main>
+    </>
   )
 }

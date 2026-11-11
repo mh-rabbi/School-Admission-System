@@ -67,5 +67,3 @@ a { color: inherit; }
   *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
 }
 
-.shell-header { display: flex; align-items: center; justify-content: space-between; margin: 12px 0; padding: 10px 16px; border-radius: 999px; }
-.shell-title { font-size: 1.05rem; }

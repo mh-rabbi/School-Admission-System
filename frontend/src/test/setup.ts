@@ -6,4 +6,5 @@ afterEach(() => {
   cleanup()
   window.localStorage.clear()
   delete document.documentElement.dataset.theme
+  window.history.replaceState(null, '', '/') // reset the hash route without firing hashchange
 })

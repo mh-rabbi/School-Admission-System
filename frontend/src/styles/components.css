@@ -16,3 +16,89 @@
 .idhint { min-width: 9em; }
 .ok { color: var(--secText); }
 .no { color: var(--bad); }
+
+/* ---- header ---- */
+.site-header {
+  position: sticky;
+  top: 12px;
+  z-index: 20;
+  margin: 12px auto;
+  max-width: 1120px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-radius: 999px;
+}
+.logo { display: flex; align-items: center; gap: 10px; font: 800 1.05rem var(--font-head); text-decoration: none; }
+.mark { width: 30px; height: 30px; border-radius: 9px; background: var(--sec); display: grid; place-items: center; }
+.mark i { width: 12px; height: 12px; border-radius: 50%; background: var(--acc); }
+.site-header nav { margin-left: auto; display: flex; gap: 18px; align-items: center; }
+.navlink { text-decoration: none; color: var(--muted); font-weight: 500; }
+.navlink:hover { color: var(--ink); }
+.tog { width: 42px; height: 42px; padding: 0; justify-content: center; border-radius: 50%; }
+@media (max-width: 700px) {
+  .site-header { margin: 8px 12px; }
+  .logo-text { display: none; }
+}
+
+.skip {
+  position: absolute;
+  left: 12px;
+  top: -60px;
+  z-index: 40;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  background: var(--sec);
+  color: var(--secInk);
+  font-weight: 600;
+}
+.skip:focus { top: 8px; }
+main:focus { outline: none; }
+
+/* ---- tabs ---- */
+.tabs { display: flex; gap: 8px; margin: 22px 0; flex-wrap: wrap; }
+.tabs .btn.on { background: var(--sec); color: var(--secInk); border-color: transparent; }
+
+/* ---- generic panes ---- */
+.pane { padding: 28px; display: grid; gap: 14px; justify-items: start; margin-top: 16px; }
+
+/* ---- toasts ---- */
+.toasts {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  width: min(92vw, 520px);
+  z-index: 30;
+  display: grid;
+  gap: 8px;
+  pointer-events: none;
+}
+.toasts > div { display: grid; gap: 8px; }
+.toast {
+  pointer-events: auto;
+  padding: 12px 14px 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+  background: var(--glass2);
+}
+.toast.err { border-color: var(--bad); }
+.toast-x {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--stroke);
+  background: transparent;
+  color: var(--ink);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* ---- error boundary page ---- */
+.crash { margin: 80px auto; max-width: 520px; padding: 32px; display: grid; gap: 16px; justify-items: start; }
+.crash-title { font-size: 1.8rem; }
