@@ -1,0 +1,28 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+TestResults/
+*.trx
+coverage*.xml
+
+# IDE
+.vs/
+.vscode/
+.idea/
+
+# Node / frontend
+node_modules/
+dist/
+coverage/
+
+# Environment (keep the examples)
+.env
+!.env.example
+**/.env
+!**/.env.example
+
+# OS
+.DS_Store
+Thumbs.db
