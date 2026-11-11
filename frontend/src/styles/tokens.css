@@ -1,0 +1,65 @@
+/* Design tokens from the approved demo. Light is the default; dark follows the OS unless the user toggles. */
+:root {
+  --bg: #eaf1ee;
+  --ink: #0e2623;
+  --muted: #4a6561;
+  --glass: rgba(255, 255, 255, 0.55);
+  --glass2: rgba(255, 255, 255, 0.78);
+  --stroke: rgba(14, 38, 35, 0.13);
+  --hi: rgba(255, 255, 255, 0.9);
+  --shadow: rgba(15, 60, 55, 0.14);
+  --sec: #0f766e;
+  --secInk: #fff;
+  --secText: #0b635c;
+  --acc: #f2a93b;
+  --accInk: #2b1a00;
+  /* amber as TEXT needs a darker shade on light backgrounds (WCAG AA); amber stays for fills */
+  --accText: #8a5300;
+  --o1: #6fcfbf;
+  --o2: #b9e6d8;
+  --o3: #f6d58e;
+  --bad: #b4412f;
+  --font-body: 'Hind Siliguri', system-ui, sans-serif;
+  --font-head: 'Bricolage Grotesque', 'Hind Siliguri', system-ui, sans-serif;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #06171a;
+    --ink: #e7f5f2;
+    --muted: #93b3ad;
+    --glass: rgba(255, 255, 255, 0.07);
+    --glass2: rgba(255, 255, 255, 0.12);
+    --stroke: rgba(255, 255, 255, 0.15);
+    --hi: rgba(255, 255, 255, 0.16);
+    --shadow: rgba(0, 0, 0, 0.45);
+    --sec: #17857b;
+    --secText: #5eead4;
+    --accText: #f2a93b;
+    --o1: #0f766e;
+    --o2: #0b4f52;
+    --o3: #7a5313;
+    --bad: #ff9a86;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #06171a;
+  --ink: #e7f5f2;
+  --muted: #93b3ad;
+  --glass: rgba(255, 255, 255, 0.07);
+  --glass2: rgba(255, 255, 255, 0.12);
+  --stroke: rgba(255, 255, 255, 0.15);
+  --hi: rgba(255, 255, 255, 0.16);
+  --shadow: rgba(0, 0, 0, 0.45);
+  --sec: #17857b;
+  --secText: #5eead4;
+  --accText: #f2a93b;
+  --o1: #0f766e;
+  --o2: #0b4f52;
+  --o3: #7a5313;
+  --bad: #ff9a86;
+  color-scheme: dark;
+}
