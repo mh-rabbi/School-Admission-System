@@ -37,6 +37,31 @@ public sealed class SmokeTests(PostgresFixture fixture)
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
+
+    [Fact]
+    public async Task Date_header_is_exposed_to_allowed_browser_origins()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/classes");
+        request.Headers.Add("Origin", "http://localhost:5173");
+
+        var response = await _factory.CreateClient().SendAsync(request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Headers.GetValues("Access-Control-Allow-Origin").Should().Equal("http://localhost:5173");
+        response.Headers.GetValues("Access-Control-Expose-Headers").Should().Equal("Date");
+    }
+
+    [Fact]
+    public async Task Disallowed_origin_gets_no_cors_headers()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/classes");
+        request.Headers.Add("Origin", "http://evil.test");
+
+        var response = await _factory.CreateClient().SendAsync(request);
+
+        response.Headers.Contains("Access-Control-Allow-Origin").Should().BeFalse();
+        response.Headers.Contains("Access-Control-Expose-Headers").Should().BeFalse();
+    }
 }
 
 public sealed class AdmissionOptionsTests

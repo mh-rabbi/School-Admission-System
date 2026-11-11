@@ -20,13 +20,15 @@ Prerequisite: Docker with the Compose plugin. Nothing else needs to be installed
 docker compose up --build
 ```
 
+This starts three containers: the database, the API and the web app. Open **http://localhost:3000** (use `localhost`, not `127.0.0.1`, see [Troubleshooting](#troubleshooting)).
+
 | What | URL |
 |---|---|
 | API | http://localhost:8080 |
 | Swagger UI | http://localhost:8080/swagger |
 | OpenAPI document | http://localhost:8080/openapi/v1.json |
 | Health check | http://localhost:8080/health |
-| Frontend | http://localhost:3000 (once the `frontend` service in `docker-compose.yml` is enabled, see [Frontend](#frontend)) |
+| **Web app (frontend)** | **http://localhost:3000** |
 
 The database schema is created automatically on first start. Data lives in the named volume `db-data`, so it **survives `docker compose down` and `docker compose up`**. To start again from an empty database, run `docker compose down -v` (this deletes all data).
 
@@ -81,6 +83,7 @@ Everything is configured with environment variables. Compose provides working de
 | `ConnectionStrings__Default` | built by compose from `POSTGRES_*` | PostgreSQL connection string (required when running outside compose) |
 | `DB_POOL_SIZE` | `50` | Max DB connections per backend instance |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:5173,http://localhost:3000` | Comma-separated browser origins allowed to call the API |
+| `VITE_API_BASE_URL` | `http://localhost:8080` | Address the **browser** uses to reach the API. Baked into the web app at build time: after changing it run `docker compose up --build` |
 | `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD` | `school_admission` / `sas` / `sas_dev_password` | Database credentials (development defaults; change for any shared deployment) |
 | `POSTGRES_PORT` | `5432` | Host port of the database |
 | `POSTGRES_MAX_CONNECTIONS` | `200` | Room for several API instances (50 each) plus admin connections |
@@ -105,7 +108,7 @@ Details, pseudo-SQL and the full reasoning: [project_docs/02-architecture.md](pr
 
 ## Tests
 
-177 automated backend tests (xUnit) run against a **real PostgreSQL 16** started automatically by [Testcontainers](https://dotnet.testcontainers.org/). They include the mandatory concurrency tests:
+179 automated backend tests (xUnit) run against a **real PostgreSQL 16** started automatically by [Testcontainers](https://dotnet.testcontainers.org/). They include the mandatory concurrency tests:
 
 | Test (`backend/tests/SchoolAdmission.Api.Tests/ConcurrencyTests.cs`) | Proves |
 |---|---|
@@ -140,49 +143,25 @@ docker run --rm \
 
 A full run takes about 20 seconds after the images are downloaded.
 
-### Multi-instance check (BRD §5 bonus) against the real containers
+### Frontend
 
-```bash
-docker compose --profile multi up -d --build   # backend on :8080 and backend2 on :8081, same database
-./scripts/multi-instance-check.sh 10 500       # 10 seats, 500 simultaneous requests split across both
-```
+A React 18 + TypeScript single-page app (Vite), served by nginx on **http://localhost:3000**. There is no login: guardians type their 17-digit student registration number into the field at the top of the page, and it is sent as `X-Student-Id`. The number is kept in the browser, so it survives a refresh or restart.
 
-The script prints how many seats each instance handed out. It confirms every winning hold on both instances at once and checks the result in the API and in PostgreSQL. It exits non-zero on any violation. It needs bash, curl and Docker.
+| Screen | What it does |
+|---|---|
+| **Classes** | Live seat numbers (total / held / confirmed / available), refreshed every 3 s without a reload. **আবেদন করুন** puts a seat on hold. Above the list, **Your active applications** show the countdown with **ভর্তি ফি দিন** (simulated payment) and **বাতিল** (cancel). |
+| **My Applications** | Every past and present application of that ID with its status (`HELD`, `CONFIRMED`, `EXPIRED`, `CANCELLED`). |
+| **Admin** | Create a class (name and total seats). There is no login, so anyone can use it (BRD §2.2). |
+| **How it works** | A short landing page with real, live seat totals. |
 
----
+Behaviour worth knowing:
 
-## Local development (without Docker for the API)
+- **Countdown.** It uses the server's `expiresAt` and the server's clock (read from the HTTP `Date` header, which the API exposes through CORS), so a wrong phone clock does not matter. At zero the application turns `EXPIRED` and **Pay** is disabled immediately, then the app confirms with the server, which always has the final say.
+- **Errors** (seats full, hold expired, invalid input, server down) appear as plain-language messages, never raw codes. While the server is unreachable the last known seat numbers stay visible with a notice, and the page recovers by itself.
+- **Double-clicks** send one request; the backend is idempotent as well.
+- **Accessibility.** Keyboard operable, screen-reader labels and announcements, light/dark theme (follows the system, switchable), reduced-motion respected, usable from 360 px wide, colour contrast checked by an automated test.
 
-```bash
-docker compose up -d db                               # PostgreSQL on localhost:5432
-dotnet run --project backend/src/SchoolAdmission.Api  # API on http://localhost:8080 (Development settings)
-```
-
----
-
-## Project structure
-
-```
-backend/
-  Dockerfile                    multi-stage build, non-root runtime, health check
-  src/SchoolAdmission.Api/
-    Program.cs                  composition root
-    Classes/                    class endpoints and service
-    Holds/                      hold endpoints, service, and HoldSql.cs (all concurrency-critical SQL)
-    Expiry/                     background sweeper that returns expired seats
-    Infrastructure/             DbContext, schema configuration, migrations, errors, validation
-  tests/SchoolAdmission.Api.Tests/
-frontend/                       React + Vite application
-scripts/multi-instance-check.sh
-project_docs/                   BRD, plan, architecture, decisions
-docker-compose.yml
-```
-
----
-
-## Frontend
-
-The frontend lives in [`/frontend`](frontend). `docker-compose.yml` contains a ready-made `frontend` service (port 3000, API URL passed as the `VITE_API_BASE_URL` build argument), which is enabled once the frontend's Dockerfile is in place. The API already allows CORS from `http://localhost:5173` (Vite dev server) and `http://localhost:3000`.
+The API address is `VITE_API_BASE_URL` (default `http://localhost:8080`), read when the image is built. The API allows CORS from `http://localhost:3000` (this container) and `http://localhost:5173` (Vite dev server). See [Frontend tests](#frontend-tests-brd-92-bonus) and [Local development](#local-development-without-docker-for-the-api).
 
 ---
 
@@ -191,6 +170,9 @@ The frontend lives in [`/frontend`](frontend). `docker-compose.yml` contains a r
 | Symptom | Fix |
 |---|---|
 | `port is already allocated` (8080 or 5432) | Stop the other process, or change `POSTGRES_PORT` in `.env`. |
+| The web app says it **can't reach the server** although the API runs | Open it as `http://localhost:3000`. The API allows CORS only for `localhost` origins, so `http://127.0.0.1:3000` (or a LAN address) is blocked by the browser. To allow another origin, add it to `CORS_ALLOWED_ORIGINS`. |
+| The web app calls the wrong API address | `VITE_API_BASE_URL` is baked in at build time. Change it, then run `docker compose up --build`. |
+| The page is blank | The app needs JavaScript. A message in the page says so when it is disabled. |
 | API returns 503 | The database is not reachable. Check `docker compose ps`; the API recovers automatically. |
 | API exits at startup with a configuration message | A variable in `.env` has an invalid value; the message names it. |
 | You want an empty database | `docker compose down -v` (deletes all data). |
