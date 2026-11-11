@@ -2,10 +2,10 @@ import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { FakeBackend } from './fakeBackend'
-import { STUDENT_A, STUDENT_B, findAlert, renderApp } from './render'
+import { STUDENT_A, STUDENT_B, findAlert, renderApp, classCard } from './render'
 
 const OTHER = '20990000000000001'
-const card = (name: string) => screen.getByRole('heading', { name }).closest('article')!
+const card = classCard
 const applyButton = (name: string) => within(card(name)).getByRole('button')
 const stat = (name: string, label: string) =>
   within(card(name)).getByText(label, { selector: 'dt' }).parentElement!.querySelector('dd')!.textContent

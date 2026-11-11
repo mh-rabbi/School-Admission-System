@@ -72,3 +72,12 @@ export function getAlert(text: RegExp): HTMLElement {
   if (!el) throw new Error(`No alert matching ${String(text)}`)
   return el
 }
+
+/** The class card (article.card) for a class name. Application rows also show the class name, so headings are ambiguous. */
+export function classCard(name: string): HTMLElement {
+  const found = [...document.querySelectorAll<HTMLElement>('article.card')].find(
+    (a) => a.querySelector('h3')?.textContent === name,
+  )
+  if (!found) throw new Error(`No class card named ${name}`)
+  return found
+}

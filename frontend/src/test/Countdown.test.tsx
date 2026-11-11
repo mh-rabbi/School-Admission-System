@@ -2,10 +2,10 @@ import { act, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { HoldTimer } from '../components/HoldTimer'
 import { FakeBackend } from './fakeBackend'
-import { STUDENT_A, advance, renderApp } from './render'
+import { STUDENT_A, advance, renderApp, classCard } from './render'
 
 const T0 = new Date('2026-11-11T04:00:00.000Z') // whole second so the HTTP Date header loses nothing
-const card = (name: string) => screen.getByRole('heading', { name }).closest('article')!
+const card = classCard
 const button = (name: string) => within(card(name)).getByRole('button')
 const stat = (name: string, label: string) =>
   within(card(name)).getByText(label, { selector: 'dt' }).parentElement!.querySelector('dd')!.textContent
@@ -88,7 +88,7 @@ describe('clock-skew correction (device clock differs from the server clock)', (
     })
     expect(shownSeconds(NAME)).toBe(40)
     await advance(41_000) // device thinks it is over → watcher re-checks; the server says still HELD
-    expect(screen.getByText(/checking with the server/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/checking with the server/i).length).toBeGreaterThan(0)
     expect(button(NAME)).toHaveAttribute('aria-disabled', 'true')
     // The 1 s re-checks stop after 15 tries; ordinary 4 s polling then carries on until the server's deadline passes.
     await advance(30_000)
@@ -120,16 +120,16 @@ describe('expiry without reloading (BRD §4.1)', () => {
     const { api } = await setup({ expiresInMs: 20_000, configure: (a) => (a.headerSkewMs = 5000) })
     await advance(15_000)
     expect(within(card(NAME)).getByRole('timer')).toHaveTextContent('00:00')
-    expect(screen.getByText(/checking with the server/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/checking with the server/i).length).toBeGreaterThan(0)
     expect(button(NAME)).toHaveAttribute('aria-disabled', 'true') // never offers a seat the server still holds
 
     const atZero = holdCalls(api)
     await advance(3000) // 15 s → 18 s, server still says HELD
     expect(holdCalls(api) - atZero).toBeGreaterThanOrEqual(3) // ~1 re-check per second, not the 4 s poll
-    expect(screen.getByText(/checking with the server/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/checking with the server/i).length).toBeGreaterThan(0)
 
     await advance(3000) // server deadline (20 s) has passed
-    expect(screen.queryByText(/checking with the server/i)).not.toBeInTheDocument()
+    expect(screen.queryAllByText(/checking with the server/i)).toHaveLength(0)
     expect(screen.queryByRole('timer')).not.toBeInTheDocument()
     expect(button(NAME)).toHaveAttribute('aria-disabled', 'false')
 

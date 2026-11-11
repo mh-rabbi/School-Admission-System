@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { ActiveApplications } from '../../components/ActiveApplications'
 import { ClassCard } from '../../components/ClassCard'
 import { ClassCardSkeleton } from '../../components/ClassCardSkeleton'
 import { ErrorBanner } from '../../components/ErrorBanner'
@@ -25,55 +26,58 @@ export function ClassesTab() {
   }, [holds.data])
 
   return (
-    <section aria-labelledby="open-classes-title">
-      <h2 id="open-classes-title" className="section-title">
-        Open classes
-      </h2>
+    <>
+      <ActiveApplications />
+      <section aria-labelledby="open-classes-title">
+        <h2 id="open-classes-title" className="section-title">
+          Open classes
+        </h2>
 
-      {classes.isPending && (
-        <>
-          <p className="sr-only" role="status">
-            Loading classes…
-          </p>
-          <div className="grid" aria-busy="true">
-            <ClassCardSkeleton />
-            <ClassCardSkeleton />
-            <ClassCardSkeleton />
-          </div>
-        </>
-      )}
-
-      {classes.isError && !classes.data && (
-        <ErrorBanner onRetry={() => void classes.refetch()}>{messageFor(classes.error, 'load')}</ErrorBanner>
-      )}
-
-      {classes.data && (
-        <>
-          {classes.isError && (
-            <ErrorBanner>
-              {messageFor(classes.error, 'load')} Showing the last known seat numbers (updated{' '}
-              {formatTime(classes.dataUpdatedAt)}).
-            </ErrorBanner>
-          )}
-          {classes.data.length === 0 ? (
-            <div className="glass banner">
-              <p>No classes are open for admission yet. They will appear here as soon as the school adds them.</p>
+        {classes.isPending && (
+          <>
+            <p className="sr-only" role="status">
+              Loading classes…
+            </p>
+            <div className="grid" aria-busy="true">
+              <ClassCardSkeleton />
+              <ClassCardSkeleton />
+              <ClassCardSkeleton />
             </div>
-          ) : (
-            <div className={`grid${classes.isError ? ' stale' : ''}`}>
-              {classes.data.map((cls) => (
-                <ClassCard
-                  key={cls.id}
-                  cls={cls}
-                  activeHold={activeByClass.get(cls.id)}
-                  busy={isBusy(cls.id)}
-                  onApply={(id) => void apply(id)}
-                />
-              ))}
-            </div>
-          )}
-        </>
-      )}
-    </section>
+          </>
+        )}
+
+        {classes.isError && !classes.data && (
+          <ErrorBanner onRetry={() => void classes.refetch()}>{messageFor(classes.error, 'load')}</ErrorBanner>
+        )}
+
+        {classes.data && (
+          <>
+            {classes.isError && (
+              <ErrorBanner>
+                {messageFor(classes.error, 'load')} Showing the last known seat numbers (updated{' '}
+                {formatTime(classes.dataUpdatedAt)}).
+              </ErrorBanner>
+            )}
+            {classes.data.length === 0 ? (
+              <div className="glass banner">
+                <p>No classes are open for admission yet. They will appear here as soon as the school adds them.</p>
+              </div>
+            ) : (
+              <div className={`grid${classes.isError ? ' stale' : ''}`}>
+                {classes.data.map((cls) => (
+                  <ClassCard
+                    key={cls.id}
+                    cls={cls}
+                    activeHold={activeByClass.get(cls.id)}
+                    busy={isBusy(cls.id)}
+                    onApply={(id) => void apply(id)}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </section>
+    </>
   )
 }

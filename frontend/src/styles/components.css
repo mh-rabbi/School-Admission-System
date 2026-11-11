@@ -141,3 +141,9 @@ main:focus { outline: none; }
 /* ---- hold countdown ---- */
 .holdtimer { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
 .timer { font: 800 1.6rem var(--font-head); color: var(--accText); font-variant-numeric: tabular-nums; }
+
+/* ---- applications ---- */
+.app { padding: 18px 20px; display: flex; gap: 14px 20px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 12px; }
+.app-main { display: grid; gap: 6px; justify-items: start; min-width: 0; }
+.app .acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.app .timer { min-width: 76px; }

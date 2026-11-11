@@ -14,6 +14,8 @@ export const ACTION_LABELS = {
 /** Positive outcomes. */
 export const SUCCESS = {
   applied: 'Seat on hold. Pay the fee before the timer ends.',
+  confirmed: (className: string) => `Admission confirmed. Welcome to ${className}.`,
+  cancelled: 'Application cancelled. The seat is free for others.',
 } as const
 
 export const GENERIC_MESSAGE = 'Something went wrong. Please try again.'

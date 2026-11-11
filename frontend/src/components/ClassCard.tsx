@@ -56,7 +56,7 @@ export function ClassCard({ cls, activeHold, busy, onApply }: ClassCardProps) {
       >
         {applied ? ACTION_LABELS.appliedAlready : ACTION_LABELS.apply}
       </button>
-      {activeHold?.status === 'HELD' && <HoldTimer expiresAt={activeHold.expiresAt} label={cls.name} />}
+      {activeHold?.status === 'HELD' && <HoldTimer expiresAt={activeHold.expiresAt} label={cls.name} announce={false} />}
       {note && <p className="cardnote muted">{note}</p>}
     </article>
   )

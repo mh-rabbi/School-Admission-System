@@ -13,6 +13,8 @@ interface HoldTimerProps {
   expiresAt: string
   /** Names the class in screen-reader announcements. */
   label: string
+  /** Set false when the same hold's timer is already announced elsewhere on the page (avoids doubled announcements). */
+  announce?: boolean
 }
 
 /**
@@ -20,7 +22,7 @@ interface HoldTimerProps {
  * second (aria-live off); screen readers hear a polite message only at 60 s, 10 s and on expiry.
  * Reaching zero here is provisional: the server decides, see ExpiryWatcher.
  */
-export function HoldTimer({ expiresAt, label }: HoldTimerProps) {
+export function HoldTimer({ expiresAt, label, announce = true }: HoldTimerProps) {
   const now = useNow()
   const remaining = msUntil(expiresAt, now)
   const bucket = timerBucket(remaining)
@@ -31,9 +33,11 @@ export function HoldTimer({ expiresAt, label }: HoldTimerProps) {
         {formatCountdown(remaining)}
       </span>
       {bucket === 'expired' && <span className="muted"> Time is up. Checking with the server…</span>}
-      <span className="sr-only" role="status" aria-live="polite">
-        {ANNOUNCEMENT[bucket](label)}
-      </span>
+      {announce && (
+        <span className="sr-only" role="status" aria-live="polite">
+          {ANNOUNCEMENT[bucket](label)}
+        </span>
+      )}
     </div>
   )
 }
