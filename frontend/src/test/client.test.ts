@@ -125,3 +125,21 @@ describe('api client: server time', () => {
     expect(seen).toEqual([Date.UTC(2026, 10, 11, 4, 10, 0)])
   })
 })
+
+describe('status → code fallback (when an error response carries no code)', () => {
+  it.each([
+    [400, 'VALIDATION_FAILED'],
+    [404, 'NOT_FOUND'],
+    [405, 'METHOD_NOT_ALLOWED'],
+    [409, 'CONFLICT'],
+    [413, 'PAYLOAD_TOO_LARGE'],
+    [415, 'UNSUPPORTED_MEDIA_TYPE'],
+    [503, 'SERVICE_UNAVAILABLE'],
+    [500, 'INTERNAL_ERROR'],
+    [504, 'INTERNAL_ERROR'],
+    [418, 'ERROR'],
+  ])('HTTP %i → %s', async (status, code) => {
+    mockFetch(() => new Response(null, { status }))
+    expect(await client.request('/x').catch((e: unknown) => e)).toMatchObject({ status, code })
+  })
+})

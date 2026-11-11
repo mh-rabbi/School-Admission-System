@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 
@@ -31,6 +32,22 @@ describe('ErrorBoundary', () => {
     expect(screen.getByRole('button', { name: /reload page/i })).toBeInTheDocument()
     expect(screen.queryByText(/kaboom/)).not.toBeInTheDocument()
     expect(log).toHaveBeenCalled() // developers still get the details in the console
+    window.removeEventListener('error', swallow)
+  })
+
+  it('the Reload button reloads the page', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const swallow = (e: ErrorEvent) => e.preventDefault()
+    window.addEventListener('error', swallow)
+    const reload = vi.fn()
+    vi.stubGlobal('location', { ...window.location, reload })
+    render(
+      <ErrorBoundary>
+        <Bomb />
+      </ErrorBoundary>,
+    )
+    await userEvent.click(screen.getByRole('button', { name: /reload page/i }))
+    expect(reload).toHaveBeenCalledTimes(1)
     window.removeEventListener('error', swallow)
   })
 })
