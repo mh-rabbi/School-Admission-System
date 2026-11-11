@@ -64,7 +64,23 @@ internal static class HoldSql
         RETURNING expires_at
         """;
 
-    public const string ClassExists = "SELECT EXISTS (SELECT 1 FROM classes WHERE id = @class)";
+    /// <summary>
+    /// Confirm (architecture §4.2). Compare-and-set HELD → CONFIRMED for the owner while unexpired, and move the
+    /// seat from held to confirmed in the same statement (sum unchanged, so the invariant holds trivially).
+    /// A concurrent duplicate confirm blocks on the hold row, then re-evaluates status = 'HELD' → false → 0 rows:
+    /// confirmed_seats is incremented exactly once (BRD §4.2 idempotency).
+    /// </summary>
+    public const string ConfirmHold = """
+        WITH confirmed AS (
+            UPDATE holds SET status = 'CONFIRMED', confirmed_at = now(), updated_at = now()
+            WHERE id = @hold AND student_id = @student
+              AND status = 'HELD' AND expires_at > now()
+            RETURNING class_id)
+        UPDATE classes SET held_seats = held_seats - 1, confirmed_seats = confirmed_seats + 1
+        WHERE id = (SELECT class_id FROM confirmed)
+        """;
+
+    public const string ClassExists ="SELECT EXISTS (SELECT 1 FROM classes WHERE id = @class)";
 
     /// <summary>
     /// Status as the client must see it: a HELD hold past expires_at is EXPIRED immediately (DB clock),

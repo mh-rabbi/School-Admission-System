@@ -37,6 +37,18 @@ public static class HoldEndpoints
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
+        // BRD §7.6 — idempotent
+        holds.MapPost("{holdId}/confirm", (
+                string holdId,
+                [FromHeader(Name = StudentIds.HeaderName)] string? studentId,
+                HoldService service,
+                CancellationToken ct) => service.ConfirmAsync(holdId, studentId, ct))
+            .WithName("ConfirmAdmission")
+            .Produces<HoldConfirmedResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
         return app;
     }
 }

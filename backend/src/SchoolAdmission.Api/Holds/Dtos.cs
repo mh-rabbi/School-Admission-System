@@ -5,3 +5,6 @@ public sealed record HoldCreatedResponse(string HoldId, string ClassId, string S
 
 /// <summary>BRD §7.5 response. studentId is intentionally not exposed (the header is optional on this endpoint).</summary>
 public sealed record HoldDetailsResponse(string HoldId, string ClassId, string Status, DateTime ExpiresAt);
+
+/// <summary>BRD §7.6 response.</summary>
+public sealed record HoldConfirmedResponse(string HoldId, string Status);

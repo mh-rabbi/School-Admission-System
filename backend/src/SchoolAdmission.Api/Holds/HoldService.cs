@@ -79,6 +79,37 @@ public sealed class HoldService(AppDbContext db, AdmissionOptions options, ILogg
         return new HoldDetailsResponse(PrefixedId.Hold(hold.Id), PrefixedId.Class(hold.ClassId), hold.Status, hold.ExpiresAt);
     }
 
+    // ------------------------------------------------------------------ confirm (BRD §7.6, architecture §4.2)
+
+    public async Task<HoldConfirmedResponse> ConfirmAsync(string holdIdRaw, string? studentIdRaw, CancellationToken ct)
+    {
+        var studentId = StudentIds.Require(studentIdRaw);
+        if (!PrefixedId.TryParse(PrefixedId.HoldPrefix, holdIdRaw, out var holdId))
+            throw HoldNotFound();
+
+        var conn = await OpenConnectionAsync(ct);
+        var updated = await TransientRetry.ExecuteAsync(
+            () => ExecuteAsync(conn, null, HoldSql.ConfirmHold, ct, ("hold", holdId.Value), ("student", studentId)),
+            logger, ct);
+
+        if (updated == 1)
+            return new HoldConfirmedResponse(PrefixedId.Hold(holdId.Value), HoldStatus.Confirmed);
+
+        // Nothing changed: explain why from the hold's current (effective) state.
+        var hold = await FindAsync(holdIdRaw, ct);
+        if (hold is null || hold.StudentId != studentId)
+            throw HoldNotFound();
+
+        return hold.Status switch
+        {
+            HoldStatus.Confirmed => new HoldConfirmedResponse(PrefixedId.Hold(hold.Id), HoldStatus.Confirmed), // idempotent repeat
+            HoldStatus.Expired => throw ApiException.Conflict(ErrorCodes.HoldExpired,
+                "Your seat hold has expired, so admission can no longer be confirmed. Please apply again if seats are available."),
+            _ => throw ApiException.Conflict(ErrorCodes.HoldNotActive,
+                "This application is no longer active (it was cancelled) and cannot be confirmed."),
+        };
+    }
+
     private sealed record HoldRow(Guid Id, Guid ClassId, string StudentId, string Status, DateTime ExpiresAt);
 
     private async Task<HoldRow?> FindAsync(string holdIdRaw, CancellationToken ct)
