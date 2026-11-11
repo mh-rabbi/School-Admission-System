@@ -182,7 +182,7 @@ docker-compose.yml
 
 ## Frontend
 
-The frontend lives in [`/frontend`](frontend). `docker-compose.yml` contains a ready-made `frontend` service (port 3000, API URL passed as the `VITE_API_BASE_URL` build argument), which is enabled once the frontend's Dockerfile is in place. The API already allows CORS from `http://localhost:5173` (Vite dev server) and `http://localhost:3000`.
+The frontend lives in [`/frontend`](frontend). `docker-compose.yml` contains a ready-made `frontend` service (port 3000, API URL passed as the `VITE_API_BASE_URL` build argument), which is enabled once the frontend's Dockerfile is in place. The API already allows CORS from `http://localhost:5173` (Vite dev server) and `http://localhost:3000`, and exposes the `Date` response header so the hold countdown can use the server clock.
 
 ---
 

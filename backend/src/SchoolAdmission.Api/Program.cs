@@ -46,7 +46,9 @@ builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>("database");
 builder.Services.AddCors(o => o.AddDefaultPolicy(p => p
     .WithOrigins([.. admissionOptions.CorsAllowedOrigins])
     .AllowAnyHeader()
-    .AllowAnyMethod()));
+    .AllowAnyMethod()
+    // Lets the browser read the server's Date header so the frontend can correct client clock skew in the hold countdown (D15).
+    .WithExposedHeaders("Date")));
 
 var app = builder.Build();
 

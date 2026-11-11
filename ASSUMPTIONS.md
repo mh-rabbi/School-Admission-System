@@ -17,7 +17,7 @@ Where the [BRD](project_docs/BRD.md) was silent or ambiguous, these are the inte
 8. **Re-applying** after an application `EXPIRED` or was `CANCELLED` is allowed. The old record stays in the history. [D8]
 9. **Confirmed admissions are final.** `DELETE /holds/{id}` on a `CONFIRMED` application returns **`409 CANNOT_CANCEL_CONFIRMED`**, and the seat is not released. Withdrawals and refunds are handled offline by the school office. [D8, user decision]
 10. **Payment is simulated.** Calling confirm counts as a successful payment (BRD §4.1).
-11. **Expiry moment:** a hold is expired when the database clock reaches `expiresAt`. From that instant it is reported as `EXPIRED` and cannot be confirmed or cancelled, even if the background sweeper has not processed it yet. All time comparisons use the **database clock**, never the API server's clock, so several instances always agree.
+11. **Expiry moment:** a hold is expired when the database clock reaches `expiresAt`. From that instant it is reported as `EXPIRED` and cannot be confirmed or cancelled, even if the background sweeper has not processed it yet. All time comparisons use the **database clock**, never the API server's clock, so several instances always agree. Every response carries the server's `Date` header, which is exposed to browsers via CORS, so the frontend countdown can correct for a wrong client clock. [D15]
 12. **Hold duration** (`HOLD_DURATION_SECONDS`) is fixed when a hold is created. Changing the setting does not affect existing holds.
 13. **`heldSeats`** counts only holds that have not yet expired, so seat numbers are correct to the second. The background sweeper (every `EXPIRY_SWEEP_INTERVAL_SECONDS`, default 5 s) then makes the release permanent.
 
