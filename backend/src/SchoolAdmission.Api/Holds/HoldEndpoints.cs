@@ -49,6 +49,22 @@ public static class HoldEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
+        // BRD §7.7 — 204 on success; idempotent for already inactive holds
+        holds.MapDelete("{holdId}", async (
+                string holdId,
+                [FromHeader(Name = StudentIds.HeaderName)] string? studentId,
+                HoldService service,
+                CancellationToken ct) =>
+            {
+                await service.CancelAsync(holdId, studentId, ct);
+                return Results.NoContent();
+            })
+            .WithName("CancelApplication")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
         return app;
     }
 }

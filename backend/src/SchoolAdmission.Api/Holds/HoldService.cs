@@ -110,6 +110,33 @@ public sealed class HoldService(AppDbContext db, AdmissionOptions options, ILogg
         };
     }
 
+    // ------------------------------------------------------------------ cancel (BRD §7.7, architecture §4.3, decision D8a)
+
+    public async Task CancelAsync(string holdIdRaw, string? studentIdRaw, CancellationToken ct)
+    {
+        var studentId = StudentIds.Require(studentIdRaw);
+        if (!PrefixedId.TryParse(PrefixedId.HoldPrefix, holdIdRaw, out var holdId))
+            throw HoldNotFound();
+
+        var conn = await OpenConnectionAsync(ct);
+        var updated = await TransientRetry.ExecuteAsync(
+            () => ExecuteAsync(conn, null, HoldSql.CancelHold, ct, ("hold", holdId.Value), ("student", studentId)),
+            logger, ct);
+
+        if (updated == 1)
+            return;
+
+        var hold = await FindAsync(holdIdRaw, ct);
+        if (hold is null || hold.StudentId != studentId)
+            throw HoldNotFound();
+
+        if (hold.Status == HoldStatus.Confirmed)
+            throw ApiException.Conflict(ErrorCodes.CannotCancelConfirmed,
+                "This admission is already confirmed and cannot be cancelled online. Please contact the school office.");
+
+        // CANCELLED or EXPIRED: the application is already inactive — cancelling again is a harmless no-op (204).
+    }
+
     private sealed record HoldRow(Guid Id, Guid ClassId, string StudentId, string Status, DateTime ExpiresAt);
 
     private async Task<HoldRow?> FindAsync(string holdIdRaw, CancellationToken ct)

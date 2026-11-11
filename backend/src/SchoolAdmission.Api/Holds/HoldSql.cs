@@ -80,7 +80,22 @@ internal static class HoldSql
         WHERE id = (SELECT class_id FROM confirmed)
         """;
 
-    public const string ClassExists ="SELECT EXISTS (SELECT 1 FROM classes WHERE id = @class)";
+    /// <summary>
+    /// Cancel (architecture §4.3). Compare-and-set HELD → CANCELLED for the owner while unexpired, and return the seat
+    /// in the same statement. Only one transaction can move a hold out of HELD, so the seat is returned exactly once,
+    /// even when cancel races confirm, another cancel, or the sweeper.
+    /// </summary>
+    public const string CancelHold = """
+        WITH cancelled AS (
+            UPDATE holds SET status = 'CANCELLED', cancelled_at = now(), updated_at = now()
+            WHERE id = @hold AND student_id = @student
+              AND status = 'HELD' AND expires_at > now()
+            RETURNING class_id)
+        UPDATE classes SET held_seats = held_seats - 1
+        WHERE id = (SELECT class_id FROM cancelled)
+        """;
+
+    public const string ClassExists = "SELECT EXISTS (SELECT 1 FROM classes WHERE id = @class)";
 
     /// <summary>
     /// Status as the client must see it: a HELD hold past expires_at is EXPIRED immediately (DB clock),
