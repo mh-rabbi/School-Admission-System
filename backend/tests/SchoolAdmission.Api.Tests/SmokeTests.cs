@@ -7,11 +7,9 @@ using SchoolAdmission.Api.Tests.Infrastructure;
 namespace SchoolAdmission.Api.Tests;
 
 [Collection(DatabaseCollection.Name)]
-public sealed class SmokeTests(PostgresFixture db) : IDisposable
+public sealed class SmokeTests(PostgresFixture fixture)
 {
-    private readonly ApiFactory _factory = new(db.ConnectionString);
-
-    public void Dispose() => _factory.Dispose();
+    private readonly ApiFactory _factory = fixture.Api;
 
     [Fact]
     public async Task Health_endpoint_returns_200_when_database_is_reachable()

@@ -7,26 +7,11 @@ namespace SchoolAdmission.Api.Tests;
 /// Proves the database itself rejects invalid states, independent of application code (BRD §4.2, §5).
 /// </summary>
 [Collection(DatabaseCollection.Name)]
-public sealed class SchemaTests(PostgresFixture db) : IAsyncLifetime
+public sealed class SchemaTests(PostgresFixture fixture)
 {
-    private const string StudentA = "20152691234567890";
+    private readonly string StudentA = TestData.StudentId();
 
-    public Task InitializeAsync()
-    {
-        // Starting the API host applies the migrations.
-        using var factory = new ApiFactory(db.ConnectionString);
-        _ = factory.Server;
-        return Task.CompletedTask;
-    }
-
-    public Task DisposeAsync() => Task.CompletedTask;
-
-    private async Task<NpgsqlConnection> OpenAsync()
-    {
-        var conn = new NpgsqlConnection(db.ConnectionString);
-        await conn.OpenAsync();
-        return conn;
-    }
+    private Task<NpgsqlConnection> OpenAsync() => fixture.Db.OpenAsync();
 
     private static async Task<Guid> InsertClassAsync(NpgsqlConnection conn, int total, int held = 0, int confirmed = 0)
     {
@@ -88,14 +73,17 @@ public sealed class SchemaTests(PostgresFixture db) : IAsyncLifetime
     public async Task Class_names_are_unique_case_insensitively()
     {
         await using var conn = await OpenAsync();
-        await using (var cmd = new NpgsqlCommand("INSERT INTO classes (id, name, total_seats) VALUES (@id, 'Class 9 - Day Shift', 10)", conn))
+        var name = TestData.ClassName("Class 9 - Day Shift");
+        await using (var cmd = new NpgsqlCommand("INSERT INTO classes (id, name, total_seats) VALUES (@id, @name, 10)", conn))
         {
             cmd.Parameters.AddWithValue("id", Guid.CreateVersion7());
+            cmd.Parameters.AddWithValue("name", name);
             await cmd.ExecuteNonQueryAsync();
         }
 
-        await using var dup = new NpgsqlCommand("INSERT INTO classes (id, name, total_seats) VALUES (@id, 'CLASS 9 - DAY SHIFT', 10)", conn);
+        await using var dup = new NpgsqlCommand("INSERT INTO classes (id, name, total_seats) VALUES (@id, @name, 10)", conn);
         dup.Parameters.AddWithValue("id", Guid.CreateVersion7());
+        dup.Parameters.AddWithValue("name", name.ToUpperInvariant());
 
         var ex = await ShouldFailAsync(() => dup.ExecuteNonQueryAsync());
         ex.SqlState.Should().Be(PostgresErrorCodes.UniqueViolation);
