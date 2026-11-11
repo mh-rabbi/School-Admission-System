@@ -3,6 +3,7 @@ import { useNow } from '../hooks/useNow'
 import { ACTION_LABELS } from '../i18n/messages'
 import { formatCountdown } from '../lib/countdown'
 import { effectiveStatus, isAwaitingServer } from '../lib/holdState'
+import { Bn } from './Bn'
 import { HoldTimer } from './HoldTimer'
 import { StatusChip } from './StatusChip'
 
@@ -68,7 +69,7 @@ function RowView({ hold, status, busy, onPay, onCancel }: RowViewProps) {
               if (canPay) onPay(hold)
             }}
           >
-            {ACTION_LABELS.pay}
+            <Bn>{ACTION_LABELS.pay}</Bn>
           </button>
           {status === 'HELD' && (
             <button
@@ -79,7 +80,7 @@ function RowView({ hold, status, busy, onPay, onCancel }: RowViewProps) {
                 if (canCancel) onCancel(hold)
               }}
             >
-              {ACTION_LABELS.cancel}
+              <Bn>{ACTION_LABELS.cancel}</Bn>
             </button>
           )}
         </div>

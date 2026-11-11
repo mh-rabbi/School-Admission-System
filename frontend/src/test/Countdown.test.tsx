@@ -10,9 +10,12 @@ const button = (name: string) => within(card(name)).getByRole('button')
 const stat = (name: string, label: string) =>
   within(card(name)).getByText(label, { selector: 'dt' }).parentElement!.querySelector('dd')!.textContent
 
-/** Seconds shown by the card's countdown. */
+/** The application row (active strip) is the one place the countdown is shown. */
+const appRow = (name: string) => screen.getByRole('article', { name: `Application for ${name}` })
+
+/** Seconds shown by the countdown. */
 const shownSeconds = (name: string) => {
-  const [m, s] = within(card(name)).getByRole('timer').textContent!.split(':').map(Number)
+  const [m, s] = within(appRow(name)).getByRole('timer').textContent!.split(':').map(Number)
   return m! * 60 + s!
 }
 
@@ -34,7 +37,7 @@ const NAME = 'Class 6 - Morning Shift'
 const holdCalls = (api: FakeBackend) => api.callsTo('GET', /^\/me\/holds$/).length
 
 describe('countdown from expiresAt', () => {
-  it('shows the time left and ticks down once per second', async () => {
+  it('shows the time left in the application row and ticks down once per second', async () => {
     await setup()
     expect(shownSeconds(NAME)).toBeGreaterThanOrEqual(599)
     expect(shownSeconds(NAME)).toBeLessThanOrEqual(600)
@@ -119,7 +122,9 @@ describe('expiry without reloading (BRD §4.1)', () => {
     // Header claims the server is 5 s ahead, but the real server clock is exact → device zero comes ~5 s early.
     const { api } = await setup({ expiresInMs: 20_000, configure: (a) => (a.headerSkewMs = 5000) })
     await advance(15_000)
-    expect(within(card(NAME)).getByRole('timer')).toHaveTextContent('00:00')
+    expect(within(appRow(NAME)).getByText('EXPIRED')).toBeInTheDocument()
+    expect(within(appRow(NAME)).getByText('00:00')).toBeInTheDocument()
+    expect(within(appRow(NAME)).queryByRole('timer')).not.toBeInTheDocument() // no live timer while we wait for the server
     expect(screen.getAllByText(/checking with the server/i).length).toBeGreaterThan(0)
     expect(button(NAME)).toHaveAttribute('aria-disabled', 'true') // never offers a seat the server still holds
 
@@ -158,7 +163,7 @@ describe('screen-reader announcements', () => {
     await advance(50_000)
     expect(screen.getByText(`Ten seconds left to pay the fee for ${NAME}.`)).toBeInTheDocument()
     expect(screen.queryByText(/one minute left/i)).not.toBeInTheDocument()
-    expect(within(card(NAME)).getByRole('timer')).toHaveAttribute('aria-live', 'off')
+    expect(within(appRow(NAME)).getByRole('timer')).toHaveAttribute('aria-live', 'off')
   })
 })
 

@@ -44,7 +44,7 @@ describe('app shell', () => {
   it('shows the landing page via "How it works" and returns with "Open portal"', async () => {
     setup()
     await userEvent.click(screen.getByRole('link', { name: 'How it works' }))
-    await waitFor(() => expect(screen.getByRole('heading', { name: 'How it works' })).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: /fair chance for every family/i })).toBeInTheDocument())
     expect(screen.queryByLabelText('Student registration number')).not.toBeInTheDocument()
     await goTo('#/')
     expect(screen.getByLabelText('Student registration number')).toBeInTheDocument()

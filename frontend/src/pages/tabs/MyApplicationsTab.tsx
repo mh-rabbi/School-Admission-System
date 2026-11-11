@@ -1,4 +1,5 @@
 import { ApplicationRow } from '../../components/ApplicationRow'
+import { Bn } from '../../components/Bn'
 import { ClassCardSkeleton } from '../../components/ClassCardSkeleton'
 import { ErrorBanner } from '../../components/ErrorBanner'
 import { useHoldActions } from '../../hooks/useHoldActions'
@@ -53,7 +54,9 @@ export function MyApplicationsTab() {
           )}
           {holds.data.length === 0 ? (
             <div className="glass banner">
-              <p>No applications yet. Pick a class and press {ACTION_LABELS.apply}.</p>
+              <p>
+                No applications yet. Pick a class and press <Bn>{ACTION_LABELS.apply}</Bn>.
+              </p>
             </div>
           ) : (
             <div className={holds.isError ? 'stale' : undefined}>

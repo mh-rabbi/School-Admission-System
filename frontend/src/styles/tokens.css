@@ -18,7 +18,8 @@
   --o1: #6fcfbf;
   --o2: #b9e6d8;
   --o3: #f6d58e;
-  --bad: #b4412f;
+  --bad: #a53625;
+  --orb-opacity: 0.85;
   --font-body: 'Hind Siliguri', system-ui, sans-serif;
   --font-head: 'Bricolage Grotesque', 'Hind Siliguri', system-ui, sans-serif;
   color-scheme: light;
@@ -34,7 +35,8 @@
     --stroke: rgba(255, 255, 255, 0.15);
     --hi: rgba(255, 255, 255, 0.16);
     --shadow: rgba(0, 0, 0, 0.45);
-    --sec: #17857b;
+    --sec: #158077;
+    --orb-opacity: 0.35;
     --secText: #5eead4;
     --accText: #f2a93b;
     --o1: #0f766e;
@@ -54,7 +56,8 @@
   --stroke: rgba(255, 255, 255, 0.15);
   --hi: rgba(255, 255, 255, 0.16);
   --shadow: rgba(0, 0, 0, 0.45);
-  --sec: #17857b;
+  --sec: #158077;
+  --orb-opacity: 0.35;
   --secText: #5eead4;
   --accText: #f2a93b;
   --o1: #0f766e;

@@ -18,7 +18,7 @@ body::after {
     radial-gradient(40vmax 40vmax at 12% 8%, var(--o1), transparent 70%),
     radial-gradient(45vmax 45vmax at 95% 35%, var(--o2), transparent 70%),
     radial-gradient(22vmax 22vmax at 70% 95%, var(--o3), transparent 70%);
-  opacity: 0.85;
+  opacity: var(--orb-opacity, 0.85);
 }
 h1, h2, h3 { font-family: var(--font-head); line-height: 1.1; margin: 0; letter-spacing: -0.02em; }
 h1 { font-size: clamp(2.4rem, 6.5vw, 4.6rem); font-weight: 800; }

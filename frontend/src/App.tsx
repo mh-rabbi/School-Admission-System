@@ -9,6 +9,10 @@ export default function App() {
   const mainRef = useRef<HTMLElement>(null)
   const firstRender = useRef(true)
 
+  useEffect(() => {
+    document.title = route.page === 'welcome' ? 'How it works – School Admission System' : 'School Admission System'
+  }, [route.page])
+
   // Move keyboard/screen-reader focus to the new page's content when the page changes (not on first load).
   useEffect(() => {
     if (firstRender.current) {

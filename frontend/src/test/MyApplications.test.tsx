@@ -38,7 +38,8 @@ describe('My Applications tab', () => {
   it('shows a friendly empty state', async () => {
     new FakeBackend().install()
     renderApp({ studentId: STUDENT_A, hash: '#/applications' })
-    expect(await screen.findByText(/no applications yet\. pick a class and press আবেদন করুন/i)).toBeInTheDocument()
+    expect(await screen.findByText(/no applications yet\. pick a class and press/i)).toBeInTheDocument()
+    expect(screen.getByText('আবেদন করুন')).toHaveAttribute('lang', 'bn')
   })
 
   it('lists every application newest first with its status; Pay/Cancel only where they make sense', async () => {
