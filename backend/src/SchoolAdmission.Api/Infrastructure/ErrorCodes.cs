@@ -14,6 +14,8 @@ public static class ErrorCodes
     public const string NotFound = "NOT_FOUND";
     public const string Conflict = "CONFLICT";
     public const string MethodNotAllowed = "METHOD_NOT_ALLOWED";
+    public const string UnsupportedMediaType = "UNSUPPORTED_MEDIA_TYPE";
+    public const string PayloadTooLarge = "PAYLOAD_TOO_LARGE";
     public const string ServiceUnavailable = "SERVICE_UNAVAILABLE";
     public const string InternalError = "INTERNAL_ERROR";
 
@@ -24,6 +26,8 @@ public static class ErrorCodes
         404 => NotFound,
         405 => MethodNotAllowed,
         409 => Conflict,
+        413 => PayloadTooLarge,
+        415 => UnsupportedMediaType,
         503 => ServiceUnavailable,
         _ when status >= 500 => InternalError,
         _ => "ERROR",

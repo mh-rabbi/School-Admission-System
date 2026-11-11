@@ -175,11 +175,9 @@ public sealed class HoldService(AppDbContext db, AdmissionOptions options, ILogg
 
     private static ApiException HoldNotFound() => ApiException.NotFound("The requested application does not exist.");
 
-    private static ApiException SeatsFull() => ApiException.Conflict(ErrorCodes.SeatsFull,
-        "Sorry, all seats in this class are currently taken. Please try again later or choose another class.");
+    private static ApiException SeatsFull() => ApiException.Conflict(ErrorCodes.SeatsFull, ProblemMapper.SeatsFullDetail);
 
-    private static ApiException AlreadyApplied() => ApiException.Conflict(ErrorCodes.AlreadyApplied,
-        "You already have an active application for this class.");
+    private static ApiException AlreadyApplied() => ApiException.Conflict(ErrorCodes.AlreadyApplied, ProblemMapper.AlreadyAppliedDetail);
 
     // ------------------------------------------------------------------ ADO.NET helpers (EF Core's connection)
 

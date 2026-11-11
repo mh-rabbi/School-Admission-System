@@ -28,6 +28,9 @@ builder.Services.AddHostedService<ExpirySweeper>();
 // not only in Development (default ThrowOnBadRequest = IsDevelopment()).
 builder.Services.Configure<RouteHandlerOptions>(o => o.ThrowOnBadRequest = true);
 
+// ---- Request limits: all bodies in this API are tiny JSON objects ----
+builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 64 * 1024);
+
 // ---- Logging: structured JSON to console ----
 builder.Logging.ClearProviders();
 builder.Logging.AddJsonConsole(o =>

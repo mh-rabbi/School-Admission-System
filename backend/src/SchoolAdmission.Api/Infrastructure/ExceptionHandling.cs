@@ -1,42 +1,40 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using Npgsql;
 
 namespace SchoolAdmission.Api.Infrastructure;
 
 /// <summary>
 /// Converts every exception into a ProblemDetails body so clients never get an empty or HTML error (BRD §8).
+/// The mapping itself lives in <see cref="ProblemMapper"/>.
 /// </summary>
 public sealed class ApiExceptionHandler(IProblemDetailsService problemDetailsService, ILogger<ApiExceptionHandler> logger)
     : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
-        var (status, code, title, detail) = exception switch
+        var request = httpContext.Request;
+
+        // Client went away (closed tab, timeout on their side): nothing to answer and not a server error.
+        if (exception is OperationCanceledException && httpContext.RequestAborted.IsCancellationRequested)
         {
-            ApiException api => (api.StatusCode, api.Code, api.Title, api.Message),
-            BadHttpRequestException bad => (bad.StatusCode, ErrorCodes.ValidationFailed, "Invalid request",
-                "The request is malformed. Please check the submitted data and try again."),
-            // Last-line safety net: the DB rejected a write the application logic should already have prevented.
-            PostgresException { SqlState: PostgresErrorCodes.CheckViolation, ConstraintName: "ck_classes_no_overbooking" } =>
-                (StatusCodes.Status409Conflict, ErrorCodes.SeatsFull, "Conflict",
-                    "Sorry, all seats in this class are currently taken. Please try again later or choose another class."),
-            PostgresException { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "ux_holds_active_student_class" } =>
-                (StatusCodes.Status409Conflict, ErrorCodes.AlreadyApplied, "Conflict",
-                    "You already have an active application for this class."),
-            _ => (StatusCodes.Status500InternalServerError, ErrorCodes.InternalError, "Unexpected error",
-                "Something went wrong on our side. Please try again later."),
-        };
+            logger.LogDebug("Request aborted by client: {Method} {Path}", request.Method, request.Path);
+            return true;
+        }
 
-        if (status >= 500)
-            logger.LogError(exception, "Unhandled exception for {Method} {Path}", httpContext.Request.Method, httpContext.Request.Path);
-        else if (exception is PostgresException pg)
-            logger.LogWarning("Database constraint {Constraint} rejected a write for {Method} {Path}",
-                pg.ConstraintName, httpContext.Request.Method, httpContext.Request.Path);
+        var info = ProblemMapper.Map(exception);
+        switch (info.Severity)
+        {
+            case ProblemSeverity.Error:
+                logger.LogError(exception, "Unhandled exception for {Method} {Path}", request.Method, request.Path);
+                break;
+            case ProblemSeverity.Warning:
+                logger.LogWarning("{Code} for {Method} {Path}: {Message}", info.Code, request.Method, request.Path, exception.Message);
+                break;
+        }
 
-        httpContext.Response.StatusCode = status;
-        var problem = new ProblemDetails { Status = status, Title = title, Detail = detail };
-        problem.Extensions["code"] = code;
+        httpContext.Response.StatusCode = info.Status;
+        var problem = new ProblemDetails { Status = info.Status, Title = info.Title, Detail = info.Detail };
+        problem.Extensions["code"] = info.Code;
 
         return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
         {
@@ -51,12 +49,25 @@ public static class ProblemDetailsSetup
 {
     public static IServiceCollection AddApiProblemDetails(this IServiceCollection services)
     {
+        // Also applies to bodies produced by status-code pages (unknown route 404, wrong method 405, …):
+        // guarantee a machine-readable code and a human-readable detail on every error.
         services.AddProblemDetails(options => options.CustomizeProblemDetails = ctx =>
         {
             var status = ctx.ProblemDetails.Status ?? ctx.HttpContext.Response.StatusCode;
             ctx.ProblemDetails.Extensions.TryAdd("code", ErrorCodes.FromStatus(status));
+            ctx.ProblemDetails.Detail ??= DefaultDetail(status);
         });
         services.AddExceptionHandler<ApiExceptionHandler>();
         return services;
     }
+
+    private static string DefaultDetail(int status) => status switch
+    {
+        StatusCodes.Status404NotFound => "The requested resource was not found.",
+        StatusCodes.Status405MethodNotAllowed => "This operation is not supported for this address.",
+        StatusCodes.Status400BadRequest => "The request is invalid. Please check the submitted data and try again.",
+        StatusCodes.Status503ServiceUnavailable => ProblemMapper.UnavailableDetail,
+        >= 500 => ProblemMapper.InternalDetail,
+        _ => "The request could not be completed.",
+    };
 }
