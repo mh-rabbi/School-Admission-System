@@ -11,6 +11,11 @@ export const ACTION_LABELS = {
   cancel: 'বাতিল',
 } as const
 
+/** Positive outcomes. */
+export const SUCCESS = {
+  applied: 'Seat on hold. Pay the fee before the timer ends.',
+} as const
+
 export const GENERIC_MESSAGE = 'Something went wrong. Please try again.'
 export const SERVER_ERROR_MESSAGE = 'Something went wrong on our side. Please try again later.'
 export const OFFLINE_MESSAGE =

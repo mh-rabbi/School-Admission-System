@@ -1,21 +1,12 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import App from '../App'
-import { StudentIdProvider } from '../state/StudentIdProvider'
-import { ThemeProvider } from '../state/ThemeProvider'
-import { ToastProvider } from '../state/ToastProvider'
+import { FakeBackend } from './fakeBackend'
+import { renderApp } from './render'
 
 function setup() {
-  return render(
-    <ThemeProvider>
-      <ToastProvider>
-        <StudentIdProvider>
-          <App />
-        </StudentIdProvider>
-      </ToastProvider>
-    </ThemeProvider>,
-  )
+  new FakeBackend().install()
+  return renderApp()
 }
 
 const goTo = (hash: string) =>

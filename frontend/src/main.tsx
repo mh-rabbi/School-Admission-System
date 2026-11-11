@@ -10,20 +10,17 @@ import './styles/base.css'
 import './styles/components.css'
 import App from './App'
 import { ErrorBoundary } from './components/ErrorBoundary'
-import { StudentIdProvider } from './state/StudentIdProvider'
-import { ThemeProvider } from './state/ThemeProvider'
-import { ToastProvider } from './state/ToastProvider'
+import { AppProviders } from './AppProviders'
+import { createQueryClient } from './lib/queryClient'
+
+const queryClient = createQueryClient()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
-      <ThemeProvider>
-        <ToastProvider>
-          <StudentIdProvider>
-            <App />
-          </StudentIdProvider>
-        </ToastProvider>
-      </ThemeProvider>
+      <AppProviders queryClient={queryClient}>
+        <App />
+      </AppProviders>
     </ErrorBoundary>
   </StrictMode>,
 )

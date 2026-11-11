@@ -102,3 +102,38 @@ main:focus { outline: none; }
 /* ---- error boundary page ---- */
 .crash { margin: 80px auto; max-width: 520px; padding: 32px; display: grid; gap: 16px; justify-items: start; }
 .crash-title { font-size: 1.8rem; }
+
+/* ---- class cards ---- */
+.section-title { font-size: 1.5rem; margin: 8px 0 14px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+.grid.stale { opacity: 0.6; }
+.card { padding: 22px; display: grid; gap: 14px; align-content: start; }
+.card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.bar { height: 12px; border-radius: 99px; background: var(--stroke); overflow: hidden; display: flex; }
+.bar b { display: block; height: 100%; transition: width 0.4s; }
+.bar .c { background: var(--sec); }
+.bar .h { background: var(--acc); }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center; margin: 0; }
+.stats > div { display: flex; flex-direction: column-reverse; }
+.stats dd { margin: 0; font: 800 1.35rem var(--font-head); }
+.stats dt { color: var(--muted); font-size: 0.78rem; }
+.cardnote { font-size: 0.9rem; }
+.card .btn { justify-content: center; }
+
+/* ---- status chips ---- */
+.chip { display: inline-block; padding: 0.15rem 0.65rem; border-radius: 8px; font-weight: 600; font-size: 0.82rem; border: 1px solid var(--stroke); }
+.chip.HELD { background: var(--acc); color: var(--accInk); border-color: transparent; }
+.chip.CONFIRMED { background: var(--sec); color: var(--secInk); border-color: transparent; }
+.chip.EXPIRED, .chip.CANCELLED { color: var(--muted); }
+
+/* ---- banners ---- */
+.banner { padding: 16px 20px; margin-bottom: 16px; display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.banner[role='alert'] { border-color: var(--bad); }
+
+/* ---- skeleton ---- */
+.sk { border-radius: 10px; background: var(--stroke); animation: shimmer 1.4s ease-in-out infinite; }
+.sk-title { height: 24px; width: 70%; }
+.sk-bar { height: 12px; border-radius: 99px; }
+.sk-stats { height: 48px; }
+.sk-btn { height: 44px; border-radius: 999px; }
+@keyframes shimmer { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
