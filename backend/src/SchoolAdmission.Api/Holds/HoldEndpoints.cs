@@ -24,6 +24,19 @@ public static class HoldEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
+        var holds = app.MapGroup("/holds").WithTags("Holds");
+
+        // BRD §7.5 — X-Student-Id optional (decision D9b)
+        holds.MapGet("{holdId}", (
+                string holdId,
+                [FromHeader(Name = StudentIds.HeaderName)] string? studentId,
+                HoldService service,
+                CancellationToken ct) => service.GetAsync(holdId, studentId, ct))
+            .WithName("GetHold")
+            .Produces<HoldDetailsResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
         return app;
     }
 }

@@ -65,7 +65,40 @@ public sealed class HoldService(AppDbContext db, AdmissionOptions options, ILogg
             PrefixedId.Hold(holdId), PrefixedId.Class(classId), studentId, HoldStatus.Held, expiresAt.Value);
     }
 
+    // ------------------------------------------------------------------ status (BRD §7.5, decision D9b)
+
+    public async Task<HoldDetailsResponse> GetAsync(string holdIdRaw, string? studentIdRaw, CancellationToken ct)
+    {
+        var requester = StudentIds.Optional(studentIdRaw);
+        var hold = await FindAsync(holdIdRaw, ct);
+
+        // Header optional; when present it must be the owner (404 hides other students' holds).
+        if (hold is null || (requester is not null && hold.StudentId != requester))
+            throw HoldNotFound();
+
+        return new HoldDetailsResponse(PrefixedId.Hold(hold.Id), PrefixedId.Class(hold.ClassId), hold.Status, hold.ExpiresAt);
+    }
+
+    private sealed record HoldRow(Guid Id, Guid ClassId, string StudentId, string Status, DateTime ExpiresAt);
+
+    private async Task<HoldRow?> FindAsync(string holdIdRaw, CancellationToken ct)
+    {
+        if (!PrefixedId.TryParse(PrefixedId.HoldPrefix, holdIdRaw, out var holdId))
+            return null;
+
+        var conn = await OpenConnectionAsync(ct);
+        await using var cmd = Command(conn, null, HoldSql.GetHold, [("hold", holdId.Value)]);
+        await using var reader = await cmd.ExecuteReaderAsync(ct);
+        if (!await reader.ReadAsync(ct))
+            return null;
+
+        return new HoldRow(reader.GetGuid(0), reader.GetGuid(1), reader.GetString(2), reader.GetString(3),
+            reader.GetFieldValue<DateTime>(4));
+    }
+
     // ------------------------------------------------------------------ errors
+
+    private static ApiException HoldNotFound() => ApiException.NotFound("The requested application does not exist.");
 
     private static ApiException SeatsFull() => ApiException.Conflict(ErrorCodes.SeatsFull,
         "Sorry, all seats in this class are currently taken. Please try again later or choose another class.");

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SchoolAdmission.Api.Classes;
+using SchoolAdmission.Api.Expiry;
 using SchoolAdmission.Api.Holds;
 using SchoolAdmission.Api.Infrastructure;
 
@@ -20,6 +21,8 @@ builder.Services.AddDbContext<AppDbContext>(o => o.UseNpgsql(connectionString));
 // ---- Features ----
 builder.Services.AddScoped<ClassService>();
 builder.Services.AddScoped<HoldService>();
+builder.Services.AddScoped<ExpiredHoldReleaser>();
+builder.Services.AddHostedService<ExpirySweeper>();
 
 // Malformed JSON / wrong types must reach ApiExceptionHandler (friendly ProblemDetails) in every environment,
 // not only in Development (default ThrowOnBadRequest = IsDevelopment()).

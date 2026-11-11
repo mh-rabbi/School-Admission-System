@@ -27,10 +27,23 @@ public sealed class SchemaTests(PostgresFixture fixture)
         return id;
     }
 
+    /// <summary>
+    /// Inserts a hold and, in the same statement, keeps the class counters in step, so data left behind by these
+    /// raw-constraint tests never breaks the global counter-consistency checks in other tests.
+    /// If the INSERT violates a constraint, the whole statement fails and nothing changes.
+    /// </summary>
     private static async Task InsertHoldAsync(NpgsqlConnection conn, Guid classId, string studentId, string status)
     {
-        await using var cmd = new NpgsqlCommand(
-            "INSERT INTO holds (id, class_id, student_id, status, expires_at) VALUES (@id, @c, @s, @st, now() + interval '10 minutes')", conn);
+        await using var cmd = new NpgsqlCommand("""
+            WITH h AS (
+                INSERT INTO holds (id, class_id, student_id, status, expires_at)
+                VALUES (@id, @c, @s, @st, now() + interval '10 minutes')
+                RETURNING status)
+            UPDATE classes SET
+                held_seats      = held_seats      + (SELECT count(*) FROM h WHERE status = 'HELD'),
+                confirmed_seats = confirmed_seats + (SELECT count(*) FROM h WHERE status = 'CONFIRMED')
+            WHERE id = @c
+            """, conn);
         cmd.Parameters.AddWithValue("id", Guid.CreateVersion7());
         cmd.Parameters.AddWithValue("c", classId);
         cmd.Parameters.AddWithValue("s", studentId);
@@ -48,7 +61,9 @@ public sealed class SchemaTests(PostgresFixture fixture)
     public async Task Overbooking_update_is_rejected_by_check_constraint()
     {
         await using var conn = await OpenAsync();
-        var classId = await InsertClassAsync(conn, total: 2, held: 1, confirmed: 1);
+        var classId = await InsertClassAsync(conn, total: 2);
+        await InsertHoldAsync(conn, classId, TestData.StudentId(), "HELD");      // held_seats = 1
+        await InsertHoldAsync(conn, classId, TestData.StudentId(), "CONFIRMED"); // confirmed_seats = 1 → full
 
         await using var cmd = new NpgsqlCommand("UPDATE classes SET held_seats = held_seats + 1 WHERE id = @id", conn);
         cmd.Parameters.AddWithValue("id", classId);

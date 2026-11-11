@@ -65,4 +65,17 @@ internal static class HoldSql
         """;
 
     public const string ClassExists = "SELECT EXISTS (SELECT 1 FROM classes WHERE id = @class)";
+
+    /// <summary>
+    /// Status as the client must see it: a HELD hold past expires_at is EXPIRED immediately (DB clock),
+    /// whether or not the sweeper has processed it yet.
+    /// </summary>
+    public const string EffectiveStatus =
+        "CASE WHEN h.status = 'HELD' AND h.expires_at <= now() THEN 'EXPIRED' ELSE h.status END";
+
+    public const string GetHold = $"""
+        SELECT h.id, h.class_id, h.student_id, {EffectiveStatus} AS status, h.expires_at
+        FROM holds h
+        WHERE h.id = @hold
+        """;
 }
