@@ -1,9 +1,13 @@
 name: school-admission
 
+# Every value below has a working default; override any of them in a root .env file (see .env.example).
+
 services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
+    # Connection budget (decision D14): room for several API instances (pool 50 each) + admin connections.
+    command: ["postgres", "-c", "max_connections=${POSTGRES_MAX_CONNECTIONS:-200}"]
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-school_admission}
       POSTGRES_USER: ${POSTGRES_USER:-sas}
@@ -11,14 +15,41 @@ services:
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data   # named volume → data survives `docker compose down` / `up`
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 3s
       retries: 10
 
-  # backend and frontend services are added in plan Step 12.
+  backend:
+    build: ./backend
+    image: school-admission-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment: &backend-env
+      ConnectionStrings__Default: "Host=db;Port=5432;Database=${POSTGRES_DB:-school_admission};Username=${POSTGRES_USER:-sas};Password=${POSTGRES_PASSWORD:-sas_dev_password};Maximum Pool Size=${DB_POOL_SIZE:-50}"
+      HOLD_DURATION_SECONDS: ${HOLD_DURATION_SECONDS:-600}
+      EXPIRY_SWEEP_INTERVAL_SECONDS: ${EXPIRY_SWEEP_INTERVAL_SECONDS:-5}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000}
+    ports:
+      - "8080:8080"
+
+  # Frontend (React + Vite) — enable once /frontend contains its Dockerfile.
+  # The browser calls the API at http://localhost:8080, so the API URL is a build-time variable of the frontend image.
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     args:
+  #       VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080}
+  #   restart: unless-stopped
+  #   depends_on:
+  #     backend:
+  #       condition: service_healthy
+  #   ports:
+  #     - "3000:80"
 
 volumes:
   db-data:
