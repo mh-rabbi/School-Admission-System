@@ -1,6 +1,7 @@
+import { IdBar } from './components/IdBar'
 import { useTheme } from './state/ThemeProvider'
 
-/** Step 1 shell: proves tooling, tokens and theme. Real UI arrives in the next steps. */
+/** Shell for steps 1–3: header + identity bar. Tabs, lists and actions arrive in the next steps. */
 export default function App() {
   const { effective, toggle } = useTheme()
   return (
@@ -16,6 +17,7 @@ export default function App() {
           ◐
         </button>
       </header>
+      <IdBar />
     </main>
   )
 }

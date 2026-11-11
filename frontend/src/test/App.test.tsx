@@ -1,12 +1,15 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from '../App'
+import { StudentIdProvider } from '../state/StudentIdProvider'
 import { ThemeProvider } from '../state/ThemeProvider'
 
 function setup() {
   return render(
     <ThemeProvider>
-      <App />
+      <StudentIdProvider>
+        <App />
+      </StudentIdProvider>
     </ThemeProvider>,
   )
 }
@@ -24,6 +27,11 @@ describe('app shell', () => {
     expect(document.documentElement.dataset.theme).toBe('dark')
     expect(window.localStorage.getItem('sas.theme')).toBe('dark')
     expect(screen.getByRole('button', { name: /switch to light mode/i })).toBeInTheDocument()
+  })
+
+  it('shows the student id field at the top of the page', () => {
+    setup()
+    expect(screen.getByLabelText('Student registration number')).toBeInTheDocument()
   })
 
   it('restores a saved theme', () => {

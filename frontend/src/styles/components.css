@@ -1,0 +1,18 @@
+/* ---- identity bar ---- */
+.idbar { padding: 16px 20px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+.idbar label { font-weight: 600; }
+.idbar input {
+  font: 500 1.05rem var(--font-body);
+  padding: 0.65rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid var(--stroke);
+  background: var(--glass2);
+  color: var(--ink);
+  min-width: 210px;
+  flex: 1;
+  letter-spacing: 0.08em;
+}
+.idbar input[aria-invalid='true'] { border-color: var(--bad); }
+.idhint { min-width: 9em; }
+.ok { color: var(--secText); }
+.no { color: var(--bad); }

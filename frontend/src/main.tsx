@@ -7,13 +7,17 @@ import '@fontsource/hind-siliguri/500.css'
 import '@fontsource/hind-siliguri/600.css'
 import './styles/tokens.css'
 import './styles/base.css'
+import './styles/components.css'
 import App from './App'
+import { StudentIdProvider } from './state/StudentIdProvider'
 import { ThemeProvider } from './state/ThemeProvider'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
-      <App />
+      <StudentIdProvider>
+        <App />
+      </StudentIdProvider>
     </ThemeProvider>
   </StrictMode>,
 )
