@@ -1,17 +1,22 @@
 using System.Net;
 using System.Text.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using SchoolAdmission.Api.Infrastructure;
+using SchoolAdmission.Api.Tests.Infrastructure;
 
 namespace SchoolAdmission.Api.Tests;
 
-public sealed class SmokeTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
+[Collection(DatabaseCollection.Name)]
+public sealed class SmokeTests(PostgresFixture db) : IDisposable
 {
+    private readonly ApiFactory _factory = new(db.ConnectionString);
+
+    public void Dispose() => _factory.Dispose();
+
     [Fact]
-    public async Task Health_endpoint_returns_200()
+    public async Task Health_endpoint_returns_200_when_database_is_reachable()
     {
-        var response = await factory.CreateClient().GetAsync("/health");
+        var response = await _factory.CreateClient().GetAsync("/health");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
@@ -19,7 +24,7 @@ public sealed class SmokeTests(WebApplicationFactory<Program> factory) : IClassF
     [Fact]
     public async Task Unknown_route_returns_problem_details_with_code()
     {
-        var response = await factory.CreateClient().GetAsync("/does-not-exist");
+        var response = await _factory.CreateClient().GetAsync("/does-not-exist");
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         response.Content.Headers.ContentType?.MediaType.Should().Be("application/problem+json");
@@ -30,7 +35,7 @@ public sealed class SmokeTests(WebApplicationFactory<Program> factory) : IClassF
     [Fact]
     public async Task OpenApi_document_is_served()
     {
-        var response = await factory.CreateClient().GetAsync("/openapi/v1.json");
+        var response = await _factory.CreateClient().GetAsync("/openapi/v1.json");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }

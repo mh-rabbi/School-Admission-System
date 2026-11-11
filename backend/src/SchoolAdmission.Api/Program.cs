@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using SchoolAdmission.Api.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -5,6 +6,14 @@ var builder = WebApplication.CreateBuilder(args);
 // ---- Configuration (env vars, BRD §6) ----
 var admissionOptions = AdmissionOptions.FromConfiguration(builder.Configuration);
 builder.Services.AddSingleton(admissionOptions);
+
+var connectionString = builder.Configuration.GetConnectionString("Default");
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new InvalidOperationException(
+        "Database connection string is missing. Set the environment variable 'ConnectionStrings__Default'.");
+
+// ---- Database ----
+builder.Services.AddDbContext<AppDbContext>(o => o.UseNpgsql(connectionString));
 
 // ---- Logging: structured JSON to console ----
 builder.Logging.ClearProviders();
@@ -17,13 +26,15 @@ builder.Logging.AddJsonConsole(o =>
 // ---- Cross-cutting services ----
 builder.Services.AddApiProblemDetails();
 builder.Services.AddOpenApi();
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>("database");
 builder.Services.AddCors(o => o.AddDefaultPolicy(p => p
     .WithOrigins([.. admissionOptions.CorsAllowedOrigins])
     .AllowAnyHeader()
     .AllowAnyMethod()));
 
 var app = builder.Build();
+
+await DatabaseMigrator.MigrateAsync(app.Services, app.Lifetime.ApplicationStopping);
 
 // ---- Pipeline ----
 app.UseExceptionHandler();
