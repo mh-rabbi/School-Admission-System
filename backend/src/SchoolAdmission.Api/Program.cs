@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SchoolAdmission.Api.Classes;
+using SchoolAdmission.Api.Holds;
 using SchoolAdmission.Api.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +19,7 @@ builder.Services.AddDbContext<AppDbContext>(o => o.UseNpgsql(connectionString));
 
 // ---- Features ----
 builder.Services.AddScoped<ClassService>();
+builder.Services.AddScoped<HoldService>();
 
 // Malformed JSON / wrong types must reach ApiExceptionHandler (friendly ProblemDetails) in every environment,
 // not only in Development (default ThrowOnBadRequest = IsDevelopment()).
@@ -53,6 +55,7 @@ app.MapOpenApi();
 app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "School Admission API v1"));
 app.MapHealthChecks("/health");
 app.MapClassEndpoints();
+app.MapHoldEndpoints();
 
 app.Run();
 
