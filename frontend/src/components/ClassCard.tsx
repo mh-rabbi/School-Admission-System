@@ -1,5 +1,6 @@
 import { ACTION_LABELS } from '../i18n/messages'
 import type { MyHold, SchoolClass } from '../api/types'
+import { HoldTimer } from './HoldTimer'
 import { SeatBar } from './SeatBar'
 
 interface ClassCardProps {
@@ -55,6 +56,7 @@ export function ClassCard({ cls, activeHold, busy, onApply }: ClassCardProps) {
       >
         {applied ? ACTION_LABELS.appliedAlready : ACTION_LABELS.apply}
       </button>
+      {activeHold?.status === 'HELD' && <HoldTimer expiresAt={activeHold.expiresAt} label={cls.name} />}
       {note && <p className="cardnote muted">{note}</p>}
     </article>
   )

@@ -1,3 +1,4 @@
+import { ExpiryWatcher } from '../components/ExpiryWatcher'
 import { IdBar } from '../components/IdBar'
 import { Tabs, type TabDef } from '../components/Tabs'
 import { useRoute } from '../hooks/useRoute'
@@ -24,6 +25,7 @@ export function Portal({ tab }: { tab: PortalTab }) {
     <div className="wrap">
       <h1 className="sr-only">Admission portal</h1>
       <IdBar />
+      <ExpiryWatcher />
       <Tabs
         tabs={TABS}
         active={tab}

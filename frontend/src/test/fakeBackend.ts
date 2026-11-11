@@ -29,8 +29,12 @@ export class FakeBackend {
   holdSeconds = 600
   /** When true every request fails like an unreachable server (fetch rejects). */
   down = false
-  /** Server clock offset relative to the browser clock, reported in the HTTP Date header. */
+  /** The server's clock offset relative to the browser clock. Expiry is decided on THIS clock, like the real DB clock. */
   serverSkewMs = 0
+  /** Offset the HTTP Date header reports; defaults to the true skew. Set differently to simulate a wrong estimate. */
+  headerSkewMs: number | null = null
+  /** Simulates the Date header being hidden from the browser (CORS not exposing it). */
+  hideDate = false
   calls: RecordedCall[] = []
   /** When set, the next matching mutating request waits for this promise (to hold a request "in flight"). */
   gate: Promise<void> | null = null
@@ -42,6 +46,11 @@ export class FakeBackend {
     return this
   }
 
+  /** Current time on the server's clock. */
+  now(): number {
+    return Date.now() + this.serverSkewMs
+  }
+
   // ---- test-side helpers
   addClass(name: string, total: number): FakeClass {
     const cls = { id: `c_${hex32(this.seq++)}`, name, total }
@@ -51,7 +60,7 @@ export class FakeBackend {
 
   /** Adds an application directly (e.g. by "another guardian"). */
   addHold(classId: string, studentId: string, status: Status = 'HELD', expiresInMs?: number): FakeHold {
-    const now = Date.now()
+    const now = this.now()
     const hold: FakeHold = {
       id: `h_${hex32(this.seq++)}`,
       classId,
@@ -77,7 +86,7 @@ export class FakeBackend {
 
   // ---- server behaviour
   private effective(h: FakeHold): Status {
-    return h.status === 'HELD' && h.expiresAt <= Date.now() ? 'EXPIRED' : h.status
+    return h.status === 'HELD' && h.expiresAt <= this.now() ? 'EXPIRED' : h.status
   }
 
   private classDto(c: FakeClass) {
@@ -93,7 +102,10 @@ export class FakeBackend {
   }
 
   private withDate(r: Response): Response {
-    r.headers.set('Date', new Date(Date.now() + this.serverSkewMs).toUTCString())
+    if (!this.hideDate) {
+      const skew = this.headerSkewMs ?? this.serverSkewMs
+      r.headers.set('Date', new Date(Date.now() + skew).toUTCString()) // toUTCString truncates to whole seconds, like HTTP
+    }
     return r
   }
 

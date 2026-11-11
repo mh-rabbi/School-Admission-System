@@ -28,14 +28,23 @@ export function renderApp(options: RenderOptions = {}) {
 }
 
 /**
- * Advances fake timers, then 1 ms more: TanStack Query notifies React through setTimeout(0), which Node treats as 1 ms,
- * so state caused by a request that settled exactly at the boundary is rendered when this returns.
+ * Advances fake timers like a real clock: in small steps, each in its own act(), so React commits every tick's
+ * re-render (and runs its effects) before the next tick, as a browser would. One giant act() would batch them all to
+ * the end. Finishes with 1 ms more: TanStack Query notifies React through setTimeout(0), which Node treats as 1 ms.
  */
-export const advance = (ms: number) =>
-  act(async () => {
-    await vi.advanceTimersByTimeAsync(ms)
+export async function advance(ms: number): Promise<void> {
+  for (let left = ms; left > 0; left -= STEP_MS) {
+    const step = Math.min(left, STEP_MS)
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(step)
+    })
+  }
+  await act(async () => {
     await vi.advanceTimersByTimeAsync(1)
   })
+}
+
+const STEP_MS = 250
 
 /**
  * The toast container always contains an (initially empty) role="alert" region so announcements are reliable, so

@@ -1,9 +1,11 @@
 import '@testing-library/jest-dom/vitest'
 import { afterEach, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
+import { resetClock } from '../lib/clock'
 
 afterEach(() => {
   cleanup()
+  resetClock()
   vi.unstubAllGlobals()
   vi.useRealTimers()
   window.localStorage.clear()

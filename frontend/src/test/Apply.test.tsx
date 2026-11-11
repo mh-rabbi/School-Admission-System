@@ -37,7 +37,7 @@ describe('Apply (আবেদন করুন)', () => {
     await waitFor(() => expect(applyButton('Class 6 - Morning Shift')).toHaveTextContent('আবেদন করা হয়েছে'))
     const [post] = api.callsTo('POST', /holds$/)
     expect(post!.headers.get('X-Student-Id')).toBe(STUDENT_A)
-    expect(screen.getByRole('status')).toHaveTextContent(/seat on hold/i)
+    expect(screen.getByText(/seat on hold\. pay the fee/i)).toBeInTheDocument()
     expect(stat('Class 6 - Morning Shift', 'Held')).toBe('1')
     expect(stat('Class 6 - Morning Shift', 'Available')).toBe('4')
     expect(applyButton('Class 6 - Morning Shift')).toHaveAttribute('aria-disabled', 'true')

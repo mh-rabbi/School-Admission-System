@@ -137,3 +137,7 @@ main:focus { outline: none; }
 .sk-stats { height: 48px; }
 .sk-btn { height: 44px; border-radius: 999px; }
 @keyframes shimmer { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+/* ---- hold countdown ---- */
+.holdtimer { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.timer { font: 800 1.6rem var(--font-head); color: var(--accText); font-variant-numeric: tabular-nums; }
