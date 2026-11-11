@@ -6,9 +6,14 @@ export const STUDENT_ID_MAX_INPUT = 20
 
 const BENGALI_DIGITS = '০১২৩৪৫৬৭৮৯'
 
-/** Converts Bengali digits (০-৯) to ASCII and trims surrounding whitespace. Everything else is left untouched. */
+/** Converts Bengali digits (০-৯) to ASCII. Everything else is left untouched. */
+export function toAsciiDigits(raw: string): string {
+  return raw.replace(/[০-৯]/g, (d) => String(BENGALI_DIGITS.indexOf(d)))
+}
+
+/** Converts Bengali digits to ASCII and trims surrounding whitespace. */
 export function normalizeStudentId(raw: string): string {
-  return raw.replace(/[০-৯]/g, (d) => String(BENGALI_DIGITS.indexOf(d))).trim()
+  return toAsciiDigits(raw).trim()
 }
 
 export function isValidStudentId(id: string): boolean {

@@ -147,3 +147,20 @@ main:focus { outline: none; }
 .app-main { display: grid; gap: 6px; justify-items: start; min-width: 0; }
 .app .acts { display: flex; gap: 8px; flex-wrap: wrap; }
 .app .timer { min-width: 76px; }
+
+/* ---- admin form ---- */
+.fld { display: grid; gap: 10px; max-width: 480px; padding: 26px; }
+.fld label { display: grid; gap: 6px; font-weight: 600; }
+.fld input {
+  font: 500 1.05rem var(--font-body);
+  padding: 0.65rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid var(--stroke);
+  background: var(--glass2);
+  color: var(--ink);
+  min-width: 0;
+}
+.fld input[aria-invalid='true'] { border-color: var(--bad); }
+.field-hint { font-size: 0.88rem; margin: -4px 0 4px; }
+.field-error { color: var(--bad); font-weight: 600; margin: 0; }
+.fld .btn { justify-self: start; }

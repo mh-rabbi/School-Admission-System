@@ -3,6 +3,7 @@ import { IdBar } from '../components/IdBar'
 import { Tabs, type TabDef } from '../components/Tabs'
 import { useRoute } from '../hooks/useRoute'
 import { ClassesTab } from './tabs/ClassesTab'
+import { AdminTab } from './tabs/AdminTab'
 import { MyApplicationsTab } from './tabs/MyApplicationsTab'
 import type { PortalTab } from '../lib/route'
 import { panelDomId, tabDomId } from '../lib/tabIds'
@@ -13,9 +14,6 @@ const TABS: readonly TabDef<PortalTab>[] = [
   { id: 'admin', label: 'Admin' },
 ]
 const PREFIX = 'portal'
-
-/** Placeholder panel text; the Admin tab's real content arrives in Step 8. */
-const ADMIN_PLACEHOLDER = 'Class creation will appear here.'
 
 export function Portal({ tab }: { tab: PortalTab }) {
   const { navigate } = useRoute()
@@ -34,7 +32,7 @@ export function Portal({ tab }: { tab: PortalTab }) {
       <div role="tabpanel" id={panelDomId(PREFIX, tab)} aria-labelledby={tabDomId(PREFIX, tab)} tabIndex={0}>
         {tab === 'classes' && <ClassesTab />}
         {tab === 'applications' && <MyApplicationsTab />}
-        {tab === 'admin' && <p className="muted">{ADMIN_PLACEHOLDER}</p>}
+        {tab === 'admin' && <AdminTab />}
       </div>
     </div>
   )
