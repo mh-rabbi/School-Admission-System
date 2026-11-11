@@ -37,6 +37,21 @@ services:
     ports:
       - "8080:8080"
 
+  # Second, independent API instance on the SAME database (BRD §5 multi-process bonus).
+  # Only started with:  docker compose --profile multi up -d --build
+  # Verify with:        ./scripts/multi-instance-check.sh
+  backend2:
+    profiles: ["multi"]
+    build: ./backend
+    image: school-admission-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment: *backend-env
+    ports:
+      - "8081:8080"
+
   # Frontend (React + Vite) — enable once /frontend contains its Dockerfile.
   # The browser calls the API at http://localhost:8080, so the API URL is a build-time variable of the frontend image.
   # frontend:
