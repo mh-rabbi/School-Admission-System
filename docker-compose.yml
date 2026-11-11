@@ -52,19 +52,21 @@ services:
     ports:
       - "8081:8080"
 
-  # Frontend (React + Vite) — enable once /frontend contains its Dockerfile.
-  # The browser calls the API at http://localhost:8080, so the API URL is a build-time variable of the frontend image.
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     args:
-  #       VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080}
-  #   restart: unless-stopped
-  #   depends_on:
-  #     backend:
-  #       condition: service_healthy
-  #   ports:
-  #     - "3000:80"
+  # Frontend (React + Vite, served by nginx) at http://localhost:3000
+  # The browser (not the container) calls the API, so VITE_API_BASE_URL must be an address the BROWSER can reach.
+  # It is baked in at build time: after changing it run `docker compose up --build`.
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080}
+    image: school-admission-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:80"
 
 volumes:
   db-data:
