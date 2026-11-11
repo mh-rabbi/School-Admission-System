@@ -137,6 +137,23 @@ public sealed class HoldService(AppDbContext db, AdmissionOptions options, ILogg
         // CANCELLED or EXPIRED: the application is already inactive — cancelling again is a harmless no-op (204).
     }
 
+    // ------------------------------------------------------------------ my applications (BRD §7.8)
+
+    public async Task<IReadOnlyList<MyHoldResponse>> ListForStudentAsync(string? studentIdRaw, CancellationToken ct)
+    {
+        var studentId = StudentIds.Require(studentIdRaw);
+        var conn = await OpenConnectionAsync(ct);
+
+        await using var cmd = Command(conn, null, HoldSql.ListStudentHolds, [("student", studentId)]);
+        await using var reader = await cmd.ExecuteReaderAsync(ct);
+        var result = new List<MyHoldResponse>();
+        while (await reader.ReadAsync(ct))
+            result.Add(new MyHoldResponse(
+                PrefixedId.Hold(reader.GetGuid(0)), PrefixedId.Class(reader.GetGuid(1)), reader.GetString(2),
+                reader.GetString(3), reader.GetFieldValue<DateTime>(4)));
+        return result;
+    }
+
     private sealed record HoldRow(Guid Id, Guid ClassId, string StudentId, string Status, DateTime ExpiresAt);
 
     private async Task<HoldRow?> FindAsync(string holdIdRaw, CancellationToken ct)

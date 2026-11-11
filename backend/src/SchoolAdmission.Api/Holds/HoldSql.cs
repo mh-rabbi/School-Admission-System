@@ -104,6 +104,15 @@ internal static class HoldSql
     public const string EffectiveStatus =
         "CASE WHEN h.status = 'HELD' AND h.expires_at <= now() THEN 'EXPIRED' ELSE h.status END";
 
+    /// <summary>All of a student's applications (history included), newest first. Served by ix_holds_student_created.</summary>
+    public const string ListStudentHolds = $"""
+        SELECT h.id, h.class_id, c.name, {EffectiveStatus} AS status, h.expires_at
+        FROM holds h
+        JOIN classes c ON c.id = h.class_id
+        WHERE h.student_id = @student
+        ORDER BY h.created_at DESC, h.id DESC
+        """;
+
     public const string GetHold = $"""
         SELECT h.id, h.class_id, h.student_id, {EffectiveStatus} AS status, h.expires_at
         FROM holds h

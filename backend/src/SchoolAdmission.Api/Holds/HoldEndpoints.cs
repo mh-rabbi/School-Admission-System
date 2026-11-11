@@ -65,6 +65,16 @@ public static class HoldEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
+        // BRD §7.8
+        app.MapGet("/me/holds", (
+                [FromHeader(Name = StudentIds.HeaderName)] string? studentId,
+                HoldService service,
+                CancellationToken ct) => service.ListForStudentAsync(studentId, ct))
+            .WithTags("Holds")
+            .WithName("GetMyApplications")
+            .Produces<IReadOnlyList<MyHoldResponse>>()
+            .ProducesProblem(StatusCodes.Status400BadRequest);
+
         return app;
     }
 }
